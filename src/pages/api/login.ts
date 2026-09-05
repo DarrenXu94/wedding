@@ -15,8 +15,8 @@ const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 interface AllowlistEntry {
   email: string;
   name: string;
-  role?: string;
   photo?: string;
+  allowPlusOne?: string;
 }
 
 async function checkAllowlist(email: string): Promise<AllowlistEntry | null> {
@@ -67,7 +67,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = createSessionToken({
     email: entry.email,
     name: entry.name,
-    role: entry.role,
+    allowPlusOne: entry.allowPlusOne,
     photo: entry.photo, // R2 object path — signed URL is generated per-request
     exp: Date.now() + SESSION_DURATION_MS,
   });

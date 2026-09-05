@@ -7,6 +7,7 @@ declare namespace App {
       email: string;
       name: string;
       photo?: string;
+      allowPlusOne?: string;
       exp: number;
     };
   }
