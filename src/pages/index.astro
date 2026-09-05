@@ -8,6 +8,8 @@ const { user } = Astro.locals;
 const photoUrl = await getSignedPhotoUrl(user?.photo);
 
 const canHavePlusOne = user?.allowPlusOne === "Y";
+
+const rsvpStatus = user?.rsvpStatus; // "yes", "no", or undefined
 ---
 
 <html lang="en">
@@ -29,6 +31,15 @@ const canHavePlusOne = user?.allowPlusOne === "Y";
 
       <p>Signed in as {user?.email}</p>
       {canHavePlusOne && <p>You are allowed to bring a plus one.</p>}
+
+      {
+        rsvpStatus && (
+          <p>
+            You have already RSVP'd with a status of{" "}
+            <strong>{rsvpStatus}</strong>.
+          </p>
+        )
+      }
 
       <RsvpForm canHavePlusOne={canHavePlusOne} />
     </main>

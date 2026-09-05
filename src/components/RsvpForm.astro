@@ -6,20 +6,24 @@ const { canHavePlusOne } = Astro.props;
   <div class="stub-body">
     <div class="field-group">
       <label for="coming">Will you be able to attend?</label>
-      <input type="text" id="coming" name="coming" autofocus />
+      <select id="coming" name="coming" required autofocus>
+        <option value="">Select an option</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
 
       <label for="dietary">Dietary Restrictions</label>
-      <input type="text" id="dietary" name="dietary" autofocus />
+      <input type="text" id="dietary" name="dietary" />
 
       <label for="notes">Additional Notes</label>
-      <input type="text" id="notes" name="notes" autofocus />
+      <input type="text" id="notes" name="notes" />
     </div>
 
     {
       canHavePlusOne && (
         <div class="field-group">
           <label for="plusOneName">Plus One Name</label>
-          <input type="text" id="plusOneName" name="plusOneName" autofocus />
+          <input type="text" id="plusOneName" name="plusOneName" />
         </div>
       )
     }

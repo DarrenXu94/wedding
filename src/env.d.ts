@@ -9,6 +9,7 @@ declare namespace App {
       photo?: string;
       allowPlusOne?: string;
       exp: number;
+      rsvpStatus?: "yes" | "no";
     };
   }
 }

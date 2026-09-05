@@ -21,6 +21,7 @@ export interface SessionPayload {
   email: string;
   name: string;
   allowPlusOne?: string;
+  rsvpStatus?: "yes" | "no";
   photo?: string; // R2 object path (e.g. "photos/sam-rivera.jpg"), not a URL
   exp: number; // epoch ms
 }

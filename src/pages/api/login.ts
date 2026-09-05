@@ -17,6 +17,7 @@ interface AllowlistEntry {
   name: string;
   photo?: string;
   allowPlusOne?: string;
+  rsvpStatus?: "yes" | "no";
 }
 
 async function checkAllowlist(email: string): Promise<AllowlistEntry | null> {
@@ -68,6 +69,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     email: entry.email,
     name: entry.name,
     allowPlusOne: entry.allowPlusOne,
+    rsvpStatus: entry.rsvpStatus,
     photo: entry.photo, // R2 object path — signed URL is generated per-request
     exp: Date.now() + SESSION_DURATION_MS,
   });

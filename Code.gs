@@ -1,7 +1,7 @@
 // Code.gs — paste this into Extensions > Apps Script on your Google Sheet.
 //
 // Expects two tabs on the sheet:
-//   "Allowlist" — columns: email | name | photo | allowPlusOne
+//   "Allowlist" — columns: email | name | photo | allowPlusOne | rsvpStatus
 //   "RSVPs"     — columns: timestamp | email | name | dietary | notes | coming | plusOneName
 //
 // Before deploying, set a shared secret so only your server can call
@@ -65,6 +65,7 @@ function handleCheckAllowlist(email) {
   const nameCol = headers.indexOf("name");
   const allowPlusOneCol = headers.indexOf("allowplusone");
   const photoCol = headers.indexOf("photo");
+  const statusCol = headers.indexOf("rsvpstatus");
 
   const normalized = String(email).trim().toLowerCase();
 
@@ -77,6 +78,7 @@ function handleCheckAllowlist(email) {
           name: row[nameCol],
           allowPlusOne: allowPlusOneCol > -1 ? row[allowPlusOneCol] : undefined,
           photo: photoCol > -1 ? row[photoCol] : undefined,
+          rsvpStatus: statusCol > -1 ? row[statusCol] : undefined,
         },
       });
     }
@@ -86,9 +88,9 @@ function handleCheckAllowlist(email) {
 }
 
 function handleSubmitRsvp(body) {
-  const sheet =
+  const rsvpSheet =
     SpreadsheetApp.getActiveSpreadsheet().getSheetByName(RSVP_SHEET_NAME);
-  sheet.appendRow([
+  rsvpSheet.appendRow([
     new Date(),
     body.email || "",
     body.name || "",
@@ -97,7 +99,42 @@ function handleSubmitRsvp(body) {
     body.coming || "",
     body.plusOneName || "",
   ]);
+
+  updateAllowlistRsvpStatus(body.email, body.coming);
+
   return jsonResponse({ success: true });
+}
+
+function updateAllowlistRsvpStatus(email, status) {
+  if (!email) return;
+
+  const sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ALLOWLIST_SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map((h) => String(h).trim().toLowerCase());
+
+  const emailCol = headers.indexOf("email");
+  const rsvpStatusCol = headers.indexOf("rsvpstatus");
+
+  if (emailCol === -1 || rsvpStatusCol === -1) {
+    Logger.log(
+      'updateAllowlistRsvpStatus: missing "email" or "rsvpStatus" column in Allowlist tab',
+    );
+    return;
+  }
+
+  const normalized = String(email).trim().toLowerCase();
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][emailCol]).trim().toLowerCase() === normalized) {
+      // +1 on both: getRange is 1-indexed, and data[0] is the header
+      // row, so data row i is sheet row i+1.
+      sheet.getRange(i + 1, rsvpStatusCol + 1).setValue(status);
+      return;
+    }
+  }
+
+  Logger.log("updateAllowlistRsvpStatus: no allowlist row found for " + email);
 }
 
 function jsonResponse(obj) {
