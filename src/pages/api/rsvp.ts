@@ -8,11 +8,17 @@
 // allowlist check can submit an RSVP.
 
 import type { APIRoute } from "astro";
+import { createSessionToken } from "../../lib/auth";
 
 const SHEET_WEB_APP_URL = import.meta.env.SHEET_WEB_APP_URL;
 const SHEET_SHARED_SECRET = import.meta.env.SHEET_SHARED_SECRET;
 
-export const POST: APIRoute = async ({ request, locals, redirect }) => {
+export const POST: APIRoute = async ({
+  request,
+  locals,
+  redirect,
+  cookies,
+}) => {
   const user = locals.user;
 
   // middleware.ts should already redirect unauthenticated requests
@@ -50,6 +56,23 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
     console.error("RSVP submission failed:", data.error || res.status);
     return redirect("/?rsvp=error");
   }
+
+  // Re-issue the session cookie with the updated RSVP status baked
+  // in, so /protected can hide the form on the very next render
+  // without needing to hit the sheet again. Keep the original
+  // expiry rather than extending it — this isn't a fresh login.
+  const updatedToken = createSessionToken({
+    ...user,
+    rsvpStatus: coming as "yes" | "no" | undefined,
+  });
+
+  cookies.set("site-auth", updatedToken, {
+    httpOnly: true,
+    secure: import.meta.env.PROD,
+    sameSite: "lax",
+    path: "/",
+    maxAge: Math.max(0, Math.floor((user.exp - Date.now()) / 1000)),
+  });
 
   return redirect("/?rsvp=success");
 };

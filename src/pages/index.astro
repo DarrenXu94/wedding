@@ -4,12 +4,19 @@ import RsvpForm from "../components/RsvpForm.astro";
 
 const { user } = Astro.locals;
 
+// Never let this page (or the photo/name/RSVP status on it) sit in
+// disk cache or shared/proxy caches. Also signals modern browsers
+// not to eagerly reuse a cached response on back/forward nav.
+Astro.response.headers.set("Cache-Control", "no-store, must-revalidate");
+
 // Generated fresh on every request — never stored or cached.
 const photoUrl = await getSignedPhotoUrl(user?.photo);
 
 const canHavePlusOne = user?.allowPlusOne === "Y";
 
 const rsvpStatus = user?.rsvpStatus; // "yes", "no", or undefined
+
+const rsvp = Astro.url.searchParams.get("rsvp") || "";
 ---
 
 <html lang="en">
@@ -23,6 +30,7 @@ const rsvpStatus = user?.rsvpStatus; // "yes", "no", or undefined
   </head>
   <body>
     <main>
+      {JSON.stringify(user, null, 2)}
       {
         photoUrl && (
           <img src={photoUrl} alt={user?.name} width="160" height="160" />
@@ -33,15 +41,43 @@ const rsvpStatus = user?.rsvpStatus; // "yes", "no", or undefined
       {canHavePlusOne && <p>You are allowed to bring a plus one.</p>}
 
       {
-        rsvpStatus && (
+        rsvpStatus ? (
           <p>
             You have already RSVP'd with a status of{" "}
             <strong>{rsvpStatus}</strong>.
           </p>
+        ) : (
+          <RsvpForm canHavePlusOne={canHavePlusOne} />
         )
       }
 
-      <RsvpForm canHavePlusOne={canHavePlusOne} />
+      {
+        rsvp === "success" && (
+          <p class="success-message">
+            Your RSVP has been successfully submitted!
+          </p>
+        )
+      }
+
+      {
+        rsvp === "error" && (
+          <p class="error-message">
+            There was an error submitting your RSVP. Please try again.
+          </p>
+        )
+      }
     </main>
+    <script>
+      // Cache-Control alone doesn't reliably stop bfcache in every
+      // browser — modern Chrome can still restore a page from bfcache
+      // even with no-store. This forces a real reload (hitting the
+      // server again) whenever the page is restored from bfcache via
+      // back/forward, so a stale pre-RSVP snapshot is never shown.
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+          window.location.reload();
+        }
+      });
+    </script>
   </body>
 </html>
