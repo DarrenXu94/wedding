@@ -1,43 +1,16 @@
 // src/pages/api/login.ts
 //
-// Checks the submitted email against the Google Sheet allowlist via
-// the Apps Script web app, and sets a signed session cookie on a
-// match. The sheet, its contents, and the shared secret never reach
-// the browser — only this server route talks to Apps Script.
+// Checks the submitted email against the active allowlist provider
+// and sets a signed session cookie on a match. The provider's
+// details (Google Sheets, a database, whatever) are fully abstracted
+// behind lib/allowlist — this file never talks to Apps Script or any
+// other backend directly.
 
 import type { APIRoute } from "astro";
 import { createSessionToken } from "../../lib/auth";
+import { allowlistProvider } from "../../lib/allowlist";
 
-const SHEET_WEB_APP_URL = import.meta.env.SHEET_WEB_APP_URL;
-const SHEET_SHARED_SECRET = import.meta.env.SHEET_SHARED_SECRET;
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
-
-interface AllowlistEntry {
-  email: string;
-  name: string;
-  photo?: string;
-  allowPlusOne?: string;
-  rsvpStatus?: "yes" | "no";
-}
-
-async function checkAllowlist(email: string): Promise<AllowlistEntry | null> {
-  const url = new URL(SHEET_WEB_APP_URL);
-  url.searchParams.set("action", "checkAllowlist");
-  url.searchParams.set("email", email);
-  url.searchParams.set("secret", SHEET_SHARED_SECRET);
-
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    throw new Error(`Allowlist check request failed with status ${res.status}`);
-  }
-
-  const data = await res.json();
-  if (data.error) {
-    throw new Error(`Allowlist check returned an error: ${data.error}`);
-  }
-
-  return data.match ?? null;
-}
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const formData = await request.formData();
@@ -49,12 +22,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     return redirect("/login?error=1");
   }
 
-  let entry: AllowlistEntry | null;
+  let entry;
   try {
-    entry = await checkAllowlist(submitted);
+    entry = await allowlistProvider.checkAllowlist(submitted);
   } catch (err) {
-    // Sheet/Apps Script unreachable, misconfigured secret, etc.
-    // Fail closed — don't let a broken lookup accidentally let anyone in.
+    // Provider unreachable, misconfigured, etc. Fail closed — don't
+    // let a broken lookup accidentally let anyone in.
     console.error("Allowlist lookup failed:", err);
     return redirect("/login?error=1");
   }
@@ -70,7 +43,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     name: entry.name,
     allowPlusOne: entry.allowPlusOne,
     rsvpStatus: entry.rsvpStatus,
-    photo: entry.photo, // R2 object path — signed URL is generated per-request
+    photo: entry.photo,
     exp: Date.now() + SESSION_DURATION_MS,
   });
 

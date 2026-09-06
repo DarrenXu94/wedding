@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({
   const user = locals.user;
 
   // middleware.ts should already redirect unauthenticated requests
-  // away from anything under /protected, but this route enforces it
+  // away from anything === /, but this route enforces it
   // independently in case it's ever called from elsewhere.
   if (!user) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
@@ -58,7 +58,7 @@ export const POST: APIRoute = async ({
   }
 
   // Re-issue the session cookie with the updated RSVP status baked
-  // in, so /protected can hide the form on the very next render
+  // in, so / can hide the form on the very next render
   // without needing to hit the sheet again. Keep the original
   // expiry rather than extending it — this isn't a fresh login.
   const updatedToken = createSessionToken({
