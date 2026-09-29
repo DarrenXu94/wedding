@@ -31,10 +31,29 @@ export const POST: APIRoute = async ({
   }
 
   const formData = await request.formData();
-  const dietary = String(formData.get("dietary") || "");
-  const notes = String(formData.get("notes") || "");
-  const coming = String(formData.get("coming") || "");
-  const plusOneName = String(formData.get("plusOneName") || "");
+
+  const allFields = Object.fromEntries(formData);
+  const dietary = String(allFields["dietary"] || "");
+  const notes = String(allFields["notes"] || "");
+  const coming = String(allFields["coming"] || "");
+
+  // Fall all fields starting with "plus-one-"
+  const plusOneFields = Object.keys(allFields).filter((key) =>
+    key.startsWith("plus-one-"),
+  );
+
+  // Combine fields that start with the same plus-one-index prefix into a single object for each plus one
+  const plusOneData: Record<string, Record<string, string>> = {};
+  plusOneFields.forEach((key) => {
+    const [_, x, index, field] = key.split("-");
+    if (!plusOneData[index]) {
+      plusOneData[index] = {};
+    }
+    plusOneData[index][field] = String(allFields[key] || "");
+  });
+
+  // Turn this into an array of [{name: string, dietary: string}, ...] for easier processing on the server side
+  const plusOneArray = Object.values(plusOneData);
 
   const res = await fetch(SHEET_WEB_APP_URL, {
     method: "POST",
@@ -47,7 +66,7 @@ export const POST: APIRoute = async ({
       dietary,
       notes,
       coming,
-      plusOneName,
+      plusOneData: JSON.stringify(plusOneArray), // Convert plusOneData to a JSON string
     }),
   });
 

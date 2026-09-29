@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = createSessionToken({
     email: entry.email,
     name: entry.name,
-    allowPlusOne: entry.allowPlusOne,
+    plusOnesAllowed: entry.plusOnesAllowed,
     rsvpStatus: entry.rsvpStatus,
     photo: entry.photo,
     exp: Date.now() + SESSION_DURATION_MS,

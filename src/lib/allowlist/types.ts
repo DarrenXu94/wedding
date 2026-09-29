@@ -8,7 +8,7 @@ export interface AllowlistEntry {
   email: string;
   name: string;
   photo?: string; // R2 object path — signed URL is generated per-request
-  allowPlusOne?: string;
+  plusOnesAllowed?: number;
   rsvpStatus?: "yes" | "no";
 }
 

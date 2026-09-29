@@ -1,5 +1,5 @@
 ---
-const { canHavePlusOne } = Astro.props;
+const { plusOnesAllowed } = Astro.props;
 ---
 
 <form method="POST" action="/api/rsvp">
@@ -20,13 +20,24 @@ const { canHavePlusOne } = Astro.props;
     </div>
 
     {
+      Array.from({ length: plusOnesAllowed }).map((_, index) => (
+      <label for={`plus-one-${index}-name`}>Plus one</label>
+      <input type="text" id={`plus-one-${index}-name`} name={`plus-one-${index}-name`} />
+
+      <label for={`plus-one-${index}-dietaries`}>Plus one dietaries</label>
+      <input type="text" id={`plus-one-${index}-dietaries`} name={`plus-one-${index}-dietaries`} />
+
+      ))
+    }
+
+    <!-- {
       canHavePlusOne && (
         <div class="field-group">
           <label for="plusOneName">Plus One Name</label>
           <input type="text" id="plusOneName" name="plusOneName" />
         </div>
       )
-    }
+    } -->
 
     <button type="submit">Unlock</button>
   </div>

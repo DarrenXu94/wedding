@@ -7,7 +7,7 @@ declare namespace App {
       email: string;
       name: string;
       photo?: string;
-      allowPlusOne?: string;
+      plusOnesAllowed?: number;
       exp: number;
       rsvpStatus?: "yes" | "no";
     };

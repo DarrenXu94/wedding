@@ -12,7 +12,7 @@ Astro.response.headers.set("Cache-Control", "no-store, must-revalidate");
 // Generated fresh on every request — never stored or cached.
 const photoUrl = await getSignedPhotoUrl(user?.photo);
 
-const canHavePlusOne = user?.allowPlusOne === "Y";
+const plusOnesAllowed = user?.plusOnesAllowed;
 
 const rsvpStatus = user?.rsvpStatus; // "yes", "no", or undefined
 
@@ -38,7 +38,7 @@ const rsvp = Astro.url.searchParams.get("rsvp") || "";
       }
 
       <p>Signed in as {user?.email}</p>
-      {canHavePlusOne && <p>You are allowed to bring a plus one.</p>}
+      {plusOnesAllowed && <p>You are allowed to bring a plus one.</p>}
 
       {
         rsvpStatus ? (
@@ -47,7 +47,7 @@ const rsvp = Astro.url.searchParams.get("rsvp") || "";
             <strong>{rsvpStatus}</strong>.
           </p>
         ) : (
-          <RsvpForm canHavePlusOne={canHavePlusOne} />
+          <RsvpForm plusOnesAllowed={plusOnesAllowed} />
         )
       }
 

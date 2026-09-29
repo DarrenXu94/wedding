@@ -20,7 +20,7 @@ if (!SECRET) {
 export interface SessionPayload {
   email: string;
   name: string;
-  allowPlusOne?: string;
+  plusOnesAllowed?: number;
   rsvpStatus?: "yes" | "no";
   photo?: string; // R2 object path (e.g. "photos/sam-rivera.jpg"), not a URL
   exp: number; // epoch ms
