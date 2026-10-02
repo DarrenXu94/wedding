@@ -3,13 +3,6 @@
 
 declare namespace App {
   interface Locals {
-    user?: {
-      email: string;
-      name: string;
-      photo?: string;
-      plusOnesAllowed?: number;
-      exp: number;
-      rsvpStatus?: "yes" | "no";
-    };
+    user?: import("./lib/auth").SessionPayload;
   }
 }

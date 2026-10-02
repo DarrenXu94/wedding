@@ -6,6 +6,7 @@
 // only the server (which holds SESSION_SECRET) can produce.
 
 import crypto from "node:crypto";
+import type { AllowlistEntry } from "./allowlist/types";
 
 const SECRET = import.meta.env.SESSION_SECRET;
 
@@ -17,12 +18,7 @@ if (!SECRET) {
   );
 }
 
-export interface SessionPayload {
-  email: string;
-  name: string;
-  plusOnesAllowed?: number;
-  rsvpStatus?: "yes" | "no";
-  photo?: string; // R2 object path (e.g. "photos/sam-rivera.jpg"), not a URL
+export interface SessionPayload extends AllowlistEntry {
   exp: number; // epoch ms
 }
 

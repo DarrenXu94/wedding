@@ -5,6 +5,7 @@
 // where this logic lives has moved.
 
 import type { AllowlistEntry, AllowlistProvider } from "../types";
+import type { AllowlistLookupResponse } from "../../sheets/types";
 
 const SHEET_WEB_APP_URL = import.meta.env.SHEET_WEB_APP_URL;
 const SHEET_SHARED_SECRET = import.meta.env.SHEET_SHARED_SECRET;
@@ -23,11 +24,32 @@ export const googleSheetsProvider: AllowlistProvider = {
       );
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as AllowlistLookupResponse;
     if (data.error) {
       throw new Error(`Allowlist check returned an error: ${data.error}`);
     }
 
-    return data.match ?? null;
+    if (!data.match) return null;
+
+    const {
+      allowPlusOne,
+      email: matchedEmail,
+      name,
+      photo,
+      rsvpStatus,
+    } = data.match;
+    const plusOnesAllowed = Number(allowPlusOne);
+
+    return {
+      email: matchedEmail,
+      name,
+      photo,
+      ...(allowPlusOne !== undefined &&
+      allowPlusOne !== "" &&
+      Number.isFinite(plusOnesAllowed)
+        ? { plusOnesAllowed }
+        : {}),
+      rsvpStatus: rsvpStatus || undefined,
+    } satisfies AllowlistEntry;
   },
 };

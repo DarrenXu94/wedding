@@ -9,6 +9,10 @@
 
 import type { APIRoute } from "astro";
 import { createSessionToken } from "../../lib/auth";
+import type {
+  RsvpSheetRow,
+  RsvpSubmissionPayload,
+} from "../../lib/sheets/types";
 
 const SHEET_WEB_APP_URL = import.meta.env.SHEET_WEB_APP_URL;
 const SHEET_SHARED_SECRET = import.meta.env.SHEET_SHARED_SECRET;
@@ -35,7 +39,7 @@ export const POST: APIRoute = async ({
   const allFields = Object.fromEntries(formData);
   const dietary = String(allFields["dietary"] || "");
   const notes = String(allFields["notes"] || "");
-  const coming = String(allFields["coming"] || "");
+  const coming = String(allFields["coming"] || "") as RsvpSheetRow["coming"];
 
   // Fall all fields starting with "plus-one-"
   const plusOneFields = Object.keys(allFields).filter((key) =>
@@ -55,19 +59,21 @@ export const POST: APIRoute = async ({
   // Turn this into an array of [{name: string, dietary: string}, ...] for easier processing on the server side
   const plusOneArray = Object.values(plusOneData);
 
+  const payload: RsvpSubmissionPayload = {
+    action: "submitRsvp",
+    secret: SHEET_SHARED_SECRET,
+    email: user.email,
+    name: user.name,
+    dietary,
+    notes,
+    coming,
+    plusOneData: JSON.stringify(plusOneArray),
+  };
+
   const res = await fetch(SHEET_WEB_APP_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "submitRsvp",
-      secret: SHEET_SHARED_SECRET,
-      email: user.email,
-      name: user.name,
-      dietary,
-      notes,
-      coming,
-      plusOneData: JSON.stringify(plusOneArray), // Convert plusOneData to a JSON string
-    }),
+    body: JSON.stringify(payload),
   });
 
   const data = await res.json();
@@ -82,7 +88,7 @@ export const POST: APIRoute = async ({
   // expiry rather than extending it — this isn't a fresh login.
   const updatedToken = createSessionToken({
     ...user,
-    rsvpStatus: coming as "yes" | "no" | undefined,
+    rsvpStatus: coming || undefined,
   });
 
   cookies.set("site-auth", updatedToken, {

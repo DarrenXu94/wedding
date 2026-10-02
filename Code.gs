@@ -1,8 +1,8 @@
 // Code.gs — paste this into Extensions > Apps Script on your Google Sheet.
 //
 // Expects two tabs on the sheet:
-//   "Allowlist" — columns: email | name | photo | allowPlusOne | rsvpStatus
-//   "RSVPs"     — columns: timestamp | email | name | dietary | notes | coming | plusOneName
+//   "Allowlist"
+//   "RSVPs"
 //
 // Before deploying, set a shared secret so only your server can call
 // this (the deployed URL is reachable by anyone who has it, since
@@ -63,7 +63,7 @@ function handleCheckAllowlist(email) {
 
   const emailCol = headers.indexOf("email");
   const nameCol = headers.indexOf("name");
-  const allowPlusOneCol = headers.indexOf("allowplusone");
+  const plusOnesAllowedCol = headers.indexOf("plusonesallowed");
   const photoCol = headers.indexOf("photo");
   const statusCol = headers.indexOf("rsvpstatus");
 
@@ -76,7 +76,8 @@ function handleCheckAllowlist(email) {
         match: {
           email: row[emailCol],
           name: row[nameCol],
-          allowPlusOne: allowPlusOneCol > -1 ? row[allowPlusOneCol] : undefined,
+          plusOnesAllowed:
+            plusOnesAllowedCol > -1 ? row[plusOnesAllowedCol] : undefined,
           photo: photoCol > -1 ? row[photoCol] : undefined,
           rsvpStatus: statusCol > -1 ? row[statusCol] : undefined,
         },
@@ -97,7 +98,7 @@ function handleSubmitRsvp(body) {
     body.dietary || "",
     body.notes || "",
     body.coming || "",
-    body.plusOneName || "",
+    body.plusOneData || "",
   ]);
 
   updateAllowlistRsvpStatus(body.email, body.coming);

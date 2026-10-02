@@ -4,13 +4,16 @@
 // whatever) can back the allowlist as long as it implements
 // AllowlistProvider and returns entries shaped like AllowlistEntry.
 
-export interface AllowlistEntry {
-  email: string;
-  name: string;
-  photo?: string; // R2 object path — signed URL is generated per-request
+import type { AllowlistSheetRow } from "../sheets/types";
+
+export interface AllowlistEntry extends Omit<
+  AllowlistSheetRow,
+  "allowPlusOne"
+> {
   plusOnesAllowed?: number;
-  rsvpStatus?: "yes" | "no";
 }
+
+export type { RsvpStatus } from "../sheets/types";
 
 export interface AllowlistProvider {
   /**
