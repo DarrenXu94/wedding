@@ -6,13 +6,6 @@
 
 import type { AllowlistSheetRow } from "../sheets/types";
 
-export interface AllowlistEntry extends Omit<
-  AllowlistSheetRow,
-  "allowPlusOne"
-> {
-  plusOnesAllowed?: number;
-}
-
 export type { RsvpStatus } from "../sheets/types";
 
 export interface AllowlistProvider {
@@ -23,5 +16,5 @@ export interface AllowlistProvider {
    * misconfiguration, etc.) — the caller treats a thrown error as
    * "fail closed" and denies access, distinct from "no match".
    */
-  checkAllowlist(email: string): Promise<AllowlistEntry | null>;
+  checkAllowlist(email: string): Promise<AllowlistSheetRow | null>;
 }

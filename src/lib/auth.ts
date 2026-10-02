@@ -6,7 +6,7 @@
 // only the server (which holds SESSION_SECRET) can produce.
 
 import crypto from "node:crypto";
-import type { AllowlistEntry } from "./allowlist/types";
+import type { AllowlistSheetRow } from "./sheets/types";
 
 const SECRET = import.meta.env.SESSION_SECRET;
 
@@ -18,7 +18,7 @@ if (!SECRET) {
   );
 }
 
-export interface SessionPayload extends AllowlistEntry {
+export interface SessionPayload extends AllowlistSheetRow {
   exp: number; // epoch ms
 }
 

@@ -4,14 +4,18 @@
 // app (see Code.gs). Talks to Apps Script exactly as before — only
 // where this logic lives has moved.
 
-import type { AllowlistEntry, AllowlistProvider } from "../types";
-import type { AllowlistLookupResponse } from "../../sheets/types";
+import type { AllowlistProvider } from "../types";
+import type { AllowlistSheetRow, RsvpStatus } from "../../sheets/types";
 
 const SHEET_WEB_APP_URL = import.meta.env.SHEET_WEB_APP_URL;
 const SHEET_SHARED_SECRET = import.meta.env.SHEET_SHARED_SECRET;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 export const googleSheetsProvider: AllowlistProvider = {
-  async checkAllowlist(email: string): Promise<AllowlistEntry | null> {
+  async checkAllowlist(email: string): Promise<AllowlistSheetRow | null> {
     const url = new URL(SHEET_WEB_APP_URL);
     url.searchParams.set("action", "checkAllowlist");
     url.searchParams.set("email", email);
@@ -24,32 +28,57 @@ export const googleSheetsProvider: AllowlistProvider = {
       );
     }
 
-    const data = (await res.json()) as AllowlistLookupResponse;
-    if (data.error) {
-      throw new Error(`Allowlist check returned an error: ${data.error}`);
+    const data: unknown = await res.json();
+    if (!isRecord(data)) {
+      throw new Error("Allowlist check returned an invalid response");
     }
 
-    if (!data.match) return null;
+    if (typeof data.error === "string") {
+      throw new Error(`Allowlist check returned an error: ${data.error}`);
+    }
+    if (data.match === null || data.match === undefined) return null;
+    if (!isRecord(data.match)) {
+      throw new Error("Allowlist check returned an invalid match");
+    }
 
-    const {
-      allowPlusOne,
-      email: matchedEmail,
-      name,
-      photo,
-      rsvpStatus,
-    } = data.match;
-    const plusOnesAllowed = Number(allowPlusOne);
+    const match = data.match;
+    const plusOnesAllowed = Number(match.plusOnesAllowed);
+    if (
+      !Number.isInteger(plusOnesAllowed) ||
+      plusOnesAllowed < 0 ||
+      (typeof match.plusOnesAllowed !== "number" &&
+        typeof match.plusOnesAllowed !== "string") ||
+      String(match.plusOnesAllowed).trim() === ""
+    ) {
+      throw new Error("Allowlist entry has an invalid plusOnesAllowed value");
+    }
+    if (typeof match.email !== "string" || typeof match.name !== "string") {
+      throw new Error("Allowlist entry is missing a valid email or name");
+    }
+    if (
+      match.photo !== undefined &&
+      match.photo !== "" &&
+      typeof match.photo !== "string"
+    ) {
+      throw new Error("Allowlist entry has an invalid photo value");
+    }
+    if (
+      match.rsvpStatus !== undefined &&
+      match.rsvpStatus !== "" &&
+      match.rsvpStatus !== "yes" &&
+      match.rsvpStatus !== "no"
+    ) {
+      throw new Error("Allowlist entry has an invalid rsvpStatus value");
+    }
+
+    const rsvpStatus = match.rsvpStatus as RsvpStatus | "" | undefined;
 
     return {
-      email: matchedEmail,
-      name,
-      photo,
-      ...(allowPlusOne !== undefined &&
-      allowPlusOne !== "" &&
-      Number.isFinite(plusOnesAllowed)
-        ? { plusOnesAllowed }
-        : {}),
+      email: match.email,
+      name: match.name,
+      photo: typeof match.photo === "string" ? match.photo : undefined,
+      plusOnesAllowed,
       rsvpStatus: rsvpStatus || undefined,
-    } satisfies AllowlistEntry;
+    } satisfies AllowlistSheetRow;
   },
 };

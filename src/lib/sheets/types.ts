@@ -7,7 +7,7 @@ export interface AllowlistSheetRow {
   email: string;
   name: string;
   photo?: string;
-  allowPlusOne?: number | "";
+  plusOnesAllowed: number;
   rsvpStatus?: RsvpStatus | "";
 }
 
@@ -18,7 +18,7 @@ export interface RsvpSheetRow {
   dietary: string;
   notes: string;
   coming: RsvpStatus | "";
-  plusOneData: string;
+  plusOneData: string; // JSON-encoded array of {name: string, dietary: string} objects, one per plus-one
 }
 
 export interface AllowlistLookupResponse {

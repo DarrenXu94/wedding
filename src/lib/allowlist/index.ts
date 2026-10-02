@@ -10,4 +10,4 @@ import type { AllowlistProvider } from "./types";
 
 export const allowlistProvider: AllowlistProvider = googleSheetsProvider;
 
-export type { AllowlistEntry, AllowlistProvider } from "./types";
+export type { AllowlistProvider } from "./types";

@@ -12,7 +12,7 @@ Astro.response.headers.set("Cache-Control", "no-store, must-revalidate");
 // Generated fresh on every request — never stored or cached.
 const photoUrl = await getSignedPhotoUrl(user?.photo);
 
-const plusOnesAllowed = user?.plusOnesAllowed;
+const plusOnesAllowed = user?.plusOnesAllowed ?? 0;
 
 const rsvpStatus = user?.rsvpStatus; // "yes", "no", or undefined
 
