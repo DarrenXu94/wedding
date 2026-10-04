@@ -3,6 +3,31 @@
 
 export type RsvpStatus = "yes" | "no";
 
+/** Fixed fields submitted by the RSVP form before conversion to the sheet payload. */
+export interface RsvpFormFields {
+  coming: RsvpStatus | "";
+  dietary: string;
+  notes: string;
+}
+
+export const RSVP_FORM_FIELD_NAMES = {
+  coming: "coming",
+  dietary: "dietary",
+  notes: "notes",
+  plusOnePrefix: "plus-one-",
+} as const satisfies { [Field in keyof RsvpFormFields]: Field } & {
+  plusOnePrefix: "plus-one-";
+};
+
+export type PlusOneFormField = "name" | "dietary";
+
+export function plusOneFormFieldName(
+  index: number,
+  field: PlusOneFormField,
+): `${typeof RSVP_FORM_FIELD_NAMES.plusOnePrefix}${number}-${PlusOneFormField}` {
+  return `${RSVP_FORM_FIELD_NAMES.plusOnePrefix}${index}-${field}`;
+}
+
 export interface AllowlistSheetRow {
   email: string;
   name: string;
@@ -28,10 +53,8 @@ export interface AllowlistLookupResponse {
 
 export interface RsvpSubmissionPayload extends Pick<
   RsvpSheetRow,
-  "email" | "name" | "dietary" | "notes" | "coming"
+  "email" | "name" | "dietary" | "notes" | "coming" | "plusOneData"
 > {
   action: "submitRsvp";
   secret: string;
-  // Current form/API representation; this is not a Google Sheets column.
-  plusOneData: string;
 }

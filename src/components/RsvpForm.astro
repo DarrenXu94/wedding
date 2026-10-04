@@ -1,4 +1,16 @@
 ---
+import {
+  RSVP_FORM_FIELD_NAMES,
+  plusOneFormFieldName,
+} from "../lib/sheets/types";
+
+/**
+ * RSVP form for a single allowlist entry.
+ *
+ * @param plusOnesAllowed - The number of plus ones allowed for this entry.
+ * 
+ * Form matches formData in rsvp.ts, which is validated and transformed into a RsvpSubmissionPayload.
+ */
 interface Props {
   plusOnesAllowed: number;
 }
@@ -9,27 +21,48 @@ const { plusOnesAllowed } = Astro.props;
 <form method="POST" action="/api/rsvp">
   <div class="stub-body">
     <div class="field-group">
-      <label for="coming">Will you be able to attend?</label>
-      <select id="coming" name="coming" required autofocus>
+      <label for={RSVP_FORM_FIELD_NAMES.coming}>Will you be able to attend?</label>
+      <select
+        id={RSVP_FORM_FIELD_NAMES.coming}
+        name={RSVP_FORM_FIELD_NAMES.coming}
+        required
+        autofocus
+      >
         <option value="">Select an option</option>
         <option value="yes">Yes</option>
         <option value="no">No</option>
       </select>
 
-      <label for="dietary">Dietary Restrictions</label>
-      <input type="text" id="dietary" name="dietary" />
+      <label for={RSVP_FORM_FIELD_NAMES.dietary}>Dietary Restrictions</label>
+      <input
+        type="text"
+        id={RSVP_FORM_FIELD_NAMES.dietary}
+        name={RSVP_FORM_FIELD_NAMES.dietary}
+      />
 
-      <label for="notes">Additional Notes</label>
-      <input type="text" id="notes" name="notes" />
+      <label for={RSVP_FORM_FIELD_NAMES.notes}>Additional Notes</label>
+      <input
+        type="text"
+        id={RSVP_FORM_FIELD_NAMES.notes}
+        name={RSVP_FORM_FIELD_NAMES.notes}
+      />
     </div>
 
     {
       Array.from({ length: plusOnesAllowed }).map((_, index) => (
-      <label for={`plus-one-${index}-name`}>Plus one</label>
-      <input type="text" id={`plus-one-${index}-name`} name={`plus-one-${index}-name`} />
+      <label for={plusOneFormFieldName(index, "name")}>Plus one</label>
+      <input
+        type="text"
+        id={plusOneFormFieldName(index, "name")}
+        name={plusOneFormFieldName(index, "name")}
+      />
 
-      <label for={`plus-one-${index}-dietaries`}>Plus one dietaries</label>
-      <input type="text" id={`plus-one-${index}-dietaries`} name={`plus-one-${index}-dietaries`} />
+      <label for={plusOneFormFieldName(index, "dietary")}>Plus one dietary restrictions</label>
+      <input
+        type="text"
+        id={plusOneFormFieldName(index, "dietary")}
+        name={plusOneFormFieldName(index, "dietary")}
+      />
 
       ))
     }

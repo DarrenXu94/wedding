@@ -10,9 +10,10 @@
 import type { APIRoute } from "astro";
 import { createSessionToken } from "../../lib/auth";
 import type {
-  RsvpSheetRow,
+  RsvpFormFields,
   RsvpSubmissionPayload,
 } from "../../lib/sheets/types";
+import { RSVP_FORM_FIELD_NAMES } from "../../lib/sheets/types";
 
 const SHEET_WEB_APP_URL = import.meta.env.SHEET_WEB_APP_URL;
 const SHEET_SHARED_SECRET = import.meta.env.SHEET_SHARED_SECRET;
@@ -37,13 +38,15 @@ export const POST: APIRoute = async ({
   const formData = await request.formData();
 
   const allFields = Object.fromEntries(formData);
-  const dietary = String(allFields["dietary"] || "");
-  const notes = String(allFields["notes"] || "");
-  const coming = String(allFields["coming"] || "") as RsvpSheetRow["coming"];
+  const dietary = String(allFields[RSVP_FORM_FIELD_NAMES.dietary] || "");
+  const notes = String(allFields[RSVP_FORM_FIELD_NAMES.notes] || "");
+  const coming = String(
+    allFields[RSVP_FORM_FIELD_NAMES.coming] || "",
+  ) as RsvpFormFields["coming"];
 
   // Fall all fields starting with "plus-one-"
   const plusOneFields = Object.keys(allFields).filter((key) =>
-    key.startsWith("plus-one-"),
+    key.startsWith(RSVP_FORM_FIELD_NAMES.plusOnePrefix),
   );
 
   // Combine fields that start with the same plus-one-index prefix into a single object for each plus one
